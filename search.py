@@ -123,6 +123,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
 def enforcedHillClimbing(problem, heuristic=nullHeuristic):
     """COMP90054 your solution to part 1 here """
+    print("This is a test for commit and push")
     util.raiseNotDefined()
     
 def idaStarSearch(problem, heuristic=nullHeuristic):
