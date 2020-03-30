@@ -18,6 +18,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+import searchAgents
 
 class SearchProblem:
     """
@@ -82,27 +83,68 @@ def depthFirstSearch(problem):
     startState = (problem.getStartState(), '', 0, [])
     mystack.push(startState)
     visited = set()
-    while mystack :
-        state = mystack.pop()
-        node, action, cost, path = state
-        if node not in visited :
-            visited.add(node)
+    #state = mystack.pop()
+    #while mystack : #while not mystack.isEmpty():
+    while not mystack.isEmpty():
+
+        state = mystack.pop() #拿掉變空啦(只有第一次會變空)#走到底要倒退，倒退的方法是移除最後一個node (pop) #拿掉新加的state
+
+        node, action, cost, path = state #拿出來時node已經變成下一個
+        ##--------------------------
+        #if node in visited :
+        #    state = mystack.pop()
+        ##-------------------------
+        if node not in visited : #走過的就不會再走一次
+            visited.add(node)    #沒走過，此node加入visited
             if problem.isGoalState(node) :
                 path = path + [(node, action)]
                 break;
-            succStates = problem.getSuccessors(node)
+            succStates = problem.getSuccessors(node) #拿接續的state (可能多個)
+            #print(succStates)
             for succState in succStates :
                 succNode, succAction, succCost = succState
                 newstate = (succNode, succAction, cost + succCost, path + [(node, action)])
-                mystack.push(newstate)
-    actions = [action[1] for action in path]
-    del actions[0]
+                mystack.push(newstate) #mystack加了接續的多個state
+        ###for check
+        #aaa = mystack.pop()
+        #print(aaa)###
+        #mystack.push(aaa)
+        ###
+    actions = [action[1] for action in path] #initialize the actions list / 其實for "action"的"action"是拿出(node,action)
+    '''
+    actions=[]
+    for action in path:
+        actions.append(action[1])
+    '''
+
+    del actions[0] #delete, because the first aciton is '' 第一個node沒有action
     return actions
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    myQueue = util.Queue()
+    startState = (problem.getStartState(), '', 0, [])
+    myQueue.push(startState)
+    visited = set()
+    while not myQueue.isEmpty():
+        expandState = myQueue.pop()
+        node, action, cost, path = expandState
+        #print(cost)
+        if node not in visited:
+            visited.add(node)
+            if problem.isGoalState(node):
+                path = path + [(node, action)]
+                break;
+            succStates = problem.getSuccessors(node)
+            for succState in succStates:
+                succNode, succAction, succCost = succState
+                newstate = (succNode, succAction, cost + succCost, path + [(node, action)])
+                myQueue.push(newstate)
+    actions = [action[1] for action in path]
+    #print(node)
+    del actions[0]
+    return actions
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
@@ -121,14 +163,91 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
 
-def enforcedHillClimbing(problem, heuristic=nullHeuristic):
+def enforcedHillClimbing(problem, heuristic=nullHeuristic): #heuristic=util.manhattanDistance
     """COMP90054 your solution to part 1 here """
-    print("This is a test for commit and push")
-    util.raiseNotDefined()
+    startState = (problem.getStartState(), '', 0, [])
+    tempActions = []
+    actions = []
+    #print(startState[0])
     
+    #node1, action1, cost1, path1 = startState
+    while not problem.isGoalState(startState[0]):
+        startState = improve(startState,problem)
+    if problem.isGoalState(startState[0]):    
+        node2, action2, cost2, path2 = startState
+        path2 = path2 + [(node2, action2)]
+        for action in path2:
+            actions.append(action[1])
+    
+    #while '' in actions:
+    #    actions.remove('')
+    #actions.reverse()
+    #print(actions)
+    print(path2)
+    del actions[0]
+    return actions
+
+def improve(state0,problem):
+    node0, action0, cost0, path0 = state0
+    myQueue = util.Queue()
+    myQueue.push(state0)
+    visited = set()
+    while not myQueue.isEmpty():
+        popState = myQueue.pop()
+        node, action, cost, path = popState
+        if node not in visited:
+            visited.add(node)
+            if searchAgents.manhattanHeuristic(node,problem) < searchAgents.manhattanHeuristic(node0,problem):
+                #break;
+                return popState #current state
+            succStates = problem.getSuccessors(node)
+            for succState in succStates:
+                succNode, succAction, succCost = succState
+                newstate = (succNode, succAction, cost + succCost, path + [(node, action)])
+                myQueue.push(newstate)
+    #actions = [action[1] for action in path]
+    #del actions[0]
+    return popState
+
+
+'''
+def initialNodeBFS(initialstate):
+    myQueue = util.Queue()
+    expandedQueue = util.Queue()
+    myQueue.push(initialstate)
+    visited = set()
+    while not myQueue.isEmpty():
+        expandState = myQueue.pop()
+        ##expendedQueue.push(expandState)
+        node, action, cost, path = expandState
+        #print(node)
+        if node not in visited:
+            visited.add(node)
+            if problem.isGoalState(node):
+                path = path + [(node, action)]
+                break;
+            succStates = problem.getSuccessors(node)
+            for succState in succStates:
+                succNode, succAction, succCost = succState
+                newstate = (succNode, succAction, cost + succCost, path + [(node, action)])
+                myQueue.push(newstate)
+    actions = [action[1] for action in path]
+    del actions[0]
+    return expandedQueue
+    '''
+   
 def idaStarSearch(problem, heuristic=nullHeuristic):
     """COMP90054 your solution to part 2 here """
-    util.raiseNotDefined()
+    myPQ = util.PriorityQueue()
+    startState = (problem.getStartState(), '', 0, [])
+    myPQ.push(startState)
+    visited = set()
+    while not myPQ.isEmpty():
+
+
+
+        del actions[0]
+    return actions
 
 
                 
