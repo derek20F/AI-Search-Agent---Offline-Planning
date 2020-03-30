@@ -238,16 +238,56 @@ def initialNodeBFS(initialstate):
    
 def idaStarSearch(problem, heuristic=nullHeuristic):
     """COMP90054 your solution to part 2 here """
-    myPQ = util.PriorityQueue()
     startState = (problem.getStartState(), '', 0, [])
-    myPQ.push(startState)
-    visited = set()
-    while not myPQ.isEmpty():
+    threshold = searchAgents.manhattanHeuristic(startState[0],problem)
+    route = util.Stack()
+    route.push(startState)
+
+    while True:
+        temp = searchF(route,0,threshold,problem) #at first state, the g is 0
+        if temp == FOUND:
+            finalState = route.pop()
+            fnode, faction, fcost, fpath = finalState
+            fpath = fpath + [(fnode,faction)] ###???????????????????????????? path到底要加上啥阿
+            actions = [faction[1] for faction in fpath]
+            del actions[0]
+            return actions
+            #return print('yes')
+            #return path
+        if temp == float("inf"):
+            return Fail
+        threshold = temp
 
 
+def searchF(route, g, threshold, problem):
+    currState = route.pop()
+    route.push(currState)##放回去?
+    #print(currState)###################
+    node, action, cost, path = currState
+    f = g + searchAgents.manhattanHeuristic(node,problem)
+    if f > threshold:
+        # 在idaStarSearch中，會把這個較大的f當作新的threshold
+        return f
+    if problem.isGoalState(node):
+        #path = path + [(node,action)]
+        return FOUND
+    succStates = problem.getSuccessors(node)
+    min = float("inf")
+    for succState in succStates: #find the smallerst f cost of children
+        #recursive call with next node as current node for depth search
+        #if succState not in route: #route是stack，不能這樣用
+        if True:
+            succNode, succAction, succCost = succState
+            newstate = (succNode, succAction, cost + succCost, path + [(node, action)])
+            route.push(newstate)
+            temp = searchF(route, g+1, threshold, problem) #cost between node is 1
+            if (temp == FOUND):
+                return FOUND
+            if (temp < min):
+                min = temp
+            route.pop()
 
-        del actions[0]
-    return actions
+    return min
 
 
                 
@@ -258,3 +298,4 @@ astar = aStarSearch
 ucs = uniformCostSearch
 ehc = enforcedHillClimbing
 ida = idaStarSearch
+FOUND = 94879487
