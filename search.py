@@ -17,6 +17,15 @@ In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
 
+"""
+COMP90054 Project 1
+Name: Chen-An Fan
+Parameters Description:
+State = node, action, cost, path
+path included the previous node and previous action
+action in current node states how the previous node come to the current node
+"""
+
 import util
 import searchAgents
 
@@ -83,41 +92,28 @@ def depthFirstSearch(problem):
     startState = (problem.getStartState(), '', 0, [])
     mystack.push(startState)
     visited = set()
-    #state = mystack.pop()
-    #while mystack : #while not mystack.isEmpty():
     while not mystack.isEmpty():
 
-        state = mystack.pop() #拿掉變空啦(只有第一次會變空)#走到底要倒退，倒退的方法是移除最後一個node (pop) #拿掉新加的state
+        state = mystack.pop()
 
-        node, action, cost, path = state #拿出來時node已經變成下一個
-        ##--------------------------
-        #if node in visited :
-        #    state = mystack.pop()
-        ##-------------------------
-        if node not in visited : #走過的就不會再走一次
-            visited.add(node)    #沒走過，此node加入visited
+        node, action, cost, path = state
+        if node not in visited : 
+            visited.add(node)
             if problem.isGoalState(node) :
                 path = path + [(node, action)]
                 break;
-            succStates = problem.getSuccessors(node) #拿接續的state (可能多個)
-            #print(succStates)
+            succStates = problem.getSuccessors(node) #may be more than one succState
             for succState in succStates :
                 succNode, succAction, succCost = succState
                 newstate = (succNode, succAction, cost + succCost, path + [(node, action)])
-                mystack.push(newstate) #mystack加了接續的多個state
-        ###for check
-        #aaa = mystack.pop()
-        #print(aaa)###
-        #mystack.push(aaa)
-        ###
-    actions = [action[1] for action in path] #initialize the actions list / 其實for "action"的"action"是拿出(node,action)
+                mystack.push(newstate)
+    actions = [action[1] for action in path] #initialize the actions list
     '''
     actions=[]
     for action in path:
         actions.append(action[1])
     '''
-
-    del actions[0] #delete, because the first aciton is '' 第一個node沒有action
+    del actions[0] #delete, because the first aciton is ''
     return actions
 
 def breadthFirstSearch(problem):
@@ -130,7 +126,6 @@ def breadthFirstSearch(problem):
     while not myQueue.isEmpty():
         expandState = myQueue.pop()
         node, action, cost, path = expandState
-        #print(cost)
         if node not in visited:
             visited.add(node)
             if problem.isGoalState(node):
@@ -142,7 +137,6 @@ def breadthFirstSearch(problem):
                 newstate = (succNode, succAction, cost + succCost, path + [(node, action)])
                 myQueue.push(newstate)
     actions = [action[1] for action in path]
-    #print(node)
     del actions[0]
     return actions
 
@@ -166,27 +160,19 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 def enforcedHillClimbing(problem, heuristic=nullHeuristic): #heuristic=util.manhattanDistance
     """COMP90054 your solution to part 1 here """
     startState = (problem.getStartState(), '', 0, [])
-    tempActions = []
     actions = []
-    #print(startState[0])
-    
     #node1, action1, cost1, path1 = startState
     while not problem.isGoalState(startState[0]):
         startState = improve(startState,problem)
     if problem.isGoalState(startState[0]):    
-        node2, action2, cost2, path2 = startState
-        path2 = path2 + [(node2, action2)]
-        for action in path2:
+        node, action, cost, path = startState
+        path = path + [(node, action)]
+        for action in path:
             actions.append(action[1])
-    
-    #while '' in actions:
-    #    actions.remove('')
-    #actions.reverse()
-    #print(actions)
-    print(path2)
     del actions[0]
     return actions
 
+## This fuction is called by enforcedHillClimbing to find an new start node
 def improve(state0,problem):
     node0, action0, cost0, path0 = state0
     myQueue = util.Queue()
@@ -198,43 +184,13 @@ def improve(state0,problem):
         if node not in visited:
             visited.add(node)
             if searchAgents.manhattanHeuristic(node,problem) < searchAgents.manhattanHeuristic(node0,problem):
-                #break;
-                return popState #current state
+                return popState #return the current state to be the new startState for ehc
             succStates = problem.getSuccessors(node)
             for succState in succStates:
                 succNode, succAction, succCost = succState
                 newstate = (succNode, succAction, cost + succCost, path + [(node, action)])
                 myQueue.push(newstate)
-    #actions = [action[1] for action in path]
-    #del actions[0]
     return popState
-
-
-'''
-def initialNodeBFS(initialstate):
-    myQueue = util.Queue()
-    expandedQueue = util.Queue()
-    myQueue.push(initialstate)
-    visited = set()
-    while not myQueue.isEmpty():
-        expandState = myQueue.pop()
-        ##expendedQueue.push(expandState)
-        node, action, cost, path = expandState
-        #print(node)
-        if node not in visited:
-            visited.add(node)
-            if problem.isGoalState(node):
-                path = path + [(node, action)]
-                break;
-            succStates = problem.getSuccessors(node)
-            for succState in succStates:
-                succNode, succAction, succCost = succState
-                newstate = (succNode, succAction, cost + succCost, path + [(node, action)])
-                myQueue.push(newstate)
-    actions = [action[1] for action in path]
-    del actions[0]
-    return expandedQueue
-    '''
    
 def idaStarSearch(problem, heuristic=nullHeuristic):
     """COMP90054 your solution to part 2 here """
@@ -248,45 +204,41 @@ def idaStarSearch(problem, heuristic=nullHeuristic):
         if temp == FOUND:
             finalState = route.pop()
             fnode, faction, fcost, fpath = finalState
-            fpath = fpath + [(fnode,faction)] ###???????????????????????????? path到底要加上啥阿
+            fpath = fpath + [(fnode, faction)]
             actions = [faction[1] for faction in fpath]
             del actions[0]
             return actions
-            #return print('yes')
-            #return path
         if temp == float("inf"):
             return Fail
         threshold = temp
 
-
+## This function is for idaStarSearch to find the threshold
 def searchF(route, g, threshold, problem):
     currState = route.pop()
-    route.push(currState)##放回去?
-    #print(currState)###################
+    route.push(currState) #only make sure there is at least node in the stack
     node, action, cost, path = currState
     f = g + searchAgents.manhattanHeuristic(node,problem)
     if f > threshold:
-        # 在idaStarSearch中，會把這個較大的f當作新的threshold
+        # in idaStarSearch, this larger f would become the new threshold
         return f
     if problem.isGoalState(node):
-        #path = path + [(node,action)]
         return FOUND
     succStates = problem.getSuccessors(node)
     min = float("inf")
     for succState in succStates: #find the smallerst f cost of children
         #recursive call with next node as current node for depth search
-        #if succState not in route: #route是stack，不能這樣用
-        if True:
+        if True: #no cycle check here
             succNode, succAction, succCost = succState
             newstate = (succNode, succAction, cost + succCost, path + [(node, action)])
             route.push(newstate)
             temp = searchF(route, g+1, threshold, problem) #cost between node is 1
+            # searchF will continu to explore to the deeper of this branch.
+            # searchF will stop goind deeper when f>threshold is found
             if (temp == FOUND):
                 return FOUND
             if (temp < min):
                 min = temp
-            route.pop()
-
+            route.pop() #Due to FIFO, there will be only on node left eventually
     return min
 
 
@@ -298,4 +250,4 @@ astar = aStarSearch
 ucs = uniformCostSearch
 ehc = enforcedHillClimbing
 ida = idaStarSearch
-FOUND = 94879487
+FOUND = "FOUND"
